@@ -288,6 +288,7 @@ export class ProjectService {
 
         return tasks;
     }
+
 }
 
 export default ProjectService;

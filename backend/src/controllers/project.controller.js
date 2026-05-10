@@ -86,6 +86,26 @@ export class ProjectController {
         }
     }
 
+    static async downloadProjectThumbnail(req, res, next) {
+        try {
+            const thumbnail = await ProjectService.getProjectThumbnail(req.params.id, req.user._id, req.user.role);
+
+            if (!thumbnail) {
+                return sendError(res, 404, 'Project thumbnail not found');
+            }
+
+            const [header, base64Data] = thumbnail.split(',');
+            const mimeType = header.match(/data:(.*?);base64/)?.[1] || 'application/octet-stream';
+            const binaryData = Buffer.from(base64Data || '', 'base64');
+
+            res.setHeader('Content-Type', mimeType);
+            res.setHeader('Content-Disposition', 'attachment; filename="project-thumbnail"');
+            res.send(binaryData);
+        } catch (error) {
+            sendError(res, error.message.includes('Not authorized') ? 403 : 404, error.message);
+        }
+    }
+
     static async deleteProject(req, res, next) {
         try {
             await ProjectService.deleteProject(req.params.id, req.user._id, req.user.role);

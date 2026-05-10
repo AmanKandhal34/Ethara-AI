@@ -11,6 +11,7 @@ router.post('/', ProjectController.createProject);
 router.get('/:id', ProjectController.getProjectById);
 router.put('/:id', ProjectController.updateProject);
 router.get('/:id/thumbnail', ProjectController.getProjectThumbnail);
+router.get('/:id/thumbnail/download', ProjectController.downloadProjectThumbnail);
 router.delete('/:id/thumbnail', ProjectController.deleteProjectThumbnail);
 router.delete('/:id', ProjectController.deleteProject);
 router.post('/:id/members', ProjectController.addMember);

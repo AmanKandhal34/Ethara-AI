@@ -116,6 +116,30 @@ export class TaskController {
         }
     }
 
+    static async downloadTaskAttachment(req, res, next) {
+        try {
+            const attachment = await TaskService.getTaskAttachment(
+                req.params.id,
+                Number(req.params.index),
+                req.user
+            );
+
+            if (!attachment) {
+                return sendError(res, 404, 'Task attachment not found');
+            }
+
+            const [header, base64Data] = attachment.split(',');
+            const mimeType = header.match(/data:(.*?);base64/)?.[1] || 'application/octet-stream';
+            const binaryData = Buffer.from(base64Data || '', 'base64');
+
+            res.setHeader('Content-Type', mimeType);
+            res.setHeader('Content-Disposition', 'attachment; filename="task-attachment"');
+            res.send(binaryData);
+        } catch (error) {
+            sendError(res, 404, error.message);
+        }
+    }
+
     static async deleteTask(req, res, next) {
         try {
             await TaskService.deleteTask(req.params.id, req.user);

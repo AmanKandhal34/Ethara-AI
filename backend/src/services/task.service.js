@@ -379,6 +379,7 @@ export class TaskService {
 
         return tasks;
     }
+
 }
 
 export default TaskService;
