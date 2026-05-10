@@ -12,7 +12,10 @@ const app = express();
 // Middleware
 app.use(
     cors({
-        origin: config.corsOrigin,
+        origin: [
+            'http://localhost:5173',
+            'https://ethara-ai-theta.vercel.app',
+        ],
         credentials: true,
     })
 );
