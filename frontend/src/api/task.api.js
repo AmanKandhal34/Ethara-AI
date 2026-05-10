@@ -24,6 +24,9 @@ const taskAPI = {
 
     deleteTaskAttachment: (id, index) =>
         axiosInstance.delete(`/tasks/${id}/attachments/${index}`),
+
+    downloadTaskAttachment: (id, index) =>
+        axiosInstance.get(`/tasks/${id}/attachments/${index}/download`, { responseType: 'blob' }),
 };
 
 export default taskAPI;

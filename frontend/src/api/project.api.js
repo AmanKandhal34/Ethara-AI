@@ -24,6 +24,9 @@ const projectAPI = {
 
     getProjectTasks: (projectId) =>
         axiosInstance.get(`/projects/${projectId}/tasks`),
+
+    downloadProjectThumbnail: (id) =>
+        axiosInstance.get(`/projects/${id}/thumbnail/download`, { responseType: 'blob' }),
 };
 
 export default projectAPI;

@@ -107,6 +107,7 @@ export default function Dashboard() {
     const [deletingUploadKey, setDeletingUploadKey] = useState('');
     const [selectedUpload, setSelectedUpload] = useState(null);
     const [viewingUploadKey, setViewingUploadKey] = useState('');
+    const [downloadingUploadKey, setDownloadingUploadKey] = useState('');
     const [deletingProjectId, setDeletingProjectId] = useState('');
     const [deletingTaskId, setDeletingTaskId] = useState('');
     const [notice, setNotice] = useState({ type: '', message: '' });
@@ -265,6 +266,31 @@ export default function Dashboard() {
         }
     };
 
+    const handleDownloadUpload = async (upload) => {
+        try {
+            setDownloadingUploadKey(upload.key);
+            const response = upload.type === 'project'
+                ? await projectAPI.downloadProjectThumbnail(upload.projectId)
+                : await taskAPI.downloadTaskAttachment(upload.taskId, upload.index);
+
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `${upload.title}-${upload.label.replace(/\s+/g, '-')}`);
+            document.body.appendChild(link);
+            link.click();
+            link.parentNode.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+            setNotice({ type: 'success', message: `${upload.label} downloaded successfully.` });
+        } catch (error) {
+            console.error('Failed to download upload:', error);
+            setNotice({ type: 'error', message: error.response?.data?.message || 'Failed to download file.' });
+        } finally {
+            setDownloadingUploadKey('');
+        }
+    };
+
     const handleConfirmAction = async () => {
         if (!confirmAction) return;
 
@@ -289,6 +315,7 @@ export default function Dashboard() {
                 onCancel={() => setConfirmAction(null)}
                 onConfirm={handleConfirmAction}
             />
+
             {selectedUpload && (
                 <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 p-4 pt-8">
                     <div className="w-full max-w-5xl bg-white rounded-lg shadow-xl overflow-hidden">
@@ -349,22 +376,22 @@ export default function Dashboard() {
 
             <div className="mb-10 grid grid-cols-1 gap-4 md:grid-cols-3">
                 <Tooltip text="Projects currently marked active" className="block">
-                <div className="bg-white p-4 rounded-lg shadow-md">
-                    <p className="text-sm text-gray-500">Active Projects</p>
-                    <p className="mt-1 text-2xl font-bold text-gray-800">{activeProjects}</p>
-                </div>
+                    <div className="bg-white p-4 rounded-lg shadow-md">
+                        <p className="text-sm text-gray-500">Active Projects</p>
+                        <p className="mt-1 text-2xl font-bold text-gray-800">{activeProjects}</p>
+                    </div>
                 </Tooltip>
                 <Tooltip text="Tasks past due and not completed" className="block">
-                <div className="bg-white p-4 rounded-lg shadow-md">
-                    <p className="text-sm text-gray-500">Overdue Tasks</p>
-                    <p className="mt-1 text-2xl font-bold text-red-600">{overdueTasks}</p>
-                </div>
+                    <div className="bg-white p-4 rounded-lg shadow-md">
+                        <p className="text-sm text-gray-500">Overdue Tasks</p>
+                        <p className="mt-1 text-2xl font-bold text-red-600">{overdueTasks}</p>
+                    </div>
                 </Tooltip>
                 <Tooltip text="Completed tasks divided by total tasks" className="block">
-                <div className="bg-white p-4 rounded-lg shadow-md">
-                    <p className="text-sm text-gray-500">Completion Rate</p>
-                    <p className="mt-1 text-2xl font-bold text-green-700">{completionRate}%</p>
-                </div>
+                    <div className="bg-white p-4 rounded-lg shadow-md">
+                        <p className="text-sm text-gray-500">Completion Rate</p>
+                        <p className="mt-1 text-2xl font-bold text-green-700">{completionRate}%</p>
+                    </div>
                 </Tooltip>
             </div>
 
@@ -463,15 +490,25 @@ export default function Dashboard() {
                                     <p className="font-semibold text-gray-800 truncate" title={upload.title}>{upload.title}</p>
                                     <p className="text-sm text-gray-500 truncate" title={upload.label}>{upload.label}</p>
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 flex-wrap">
                                     <Tooltip text={`View ${upload.label}`}>
                                         <button
                                             type="button"
                                             onClick={() => handleViewUpload(upload)}
                                             disabled={viewingUploadKey === upload.key}
-                                            className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                            className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-60"
                                         >
                                             {viewingUploadKey === upload.key ? 'Opening...' : 'View'}
+                                        </button>
+                                    </Tooltip>
+                                    <Tooltip text={`Download ${upload.label}`}>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleDownloadUpload(upload)}
+                                            disabled={downloadingUploadKey === upload.key}
+                                            className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-60"
+                                        >
+                                            {downloadingUploadKey === upload.key ? 'Downloading...' : 'Download'}
                                         </button>
                                     </Tooltip>
                                     <Tooltip text={`Delete ${upload.label}`}>
